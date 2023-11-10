@@ -33,8 +33,6 @@ func (cr CommentRepository) FindAllByThreadId(id uuid.UUID) (*[]c.Comment, error
 
 	comments := &[]c.Comment{}
 
-	commentsPointerMap := map[uuid.UUID]*[]c.Comment{}
-
 	query := `
 		SELECT 
 			-- thread info
@@ -100,19 +98,7 @@ func (cr CommentRepository) FindAllByThreadId(id uuid.UUID) (*[]c.Comment, error
 
 		var iComment c.Comment = comment
 
-		if sisters, ok := commentsPointerMap[iComment.GetParentId()]; !ok {
-			commentsPointerMap[iComment.GetParentId()] = &[]c.Comment{iComment}
-		} else {
-			*sisters = append(*sisters, iComment)
-		}
-
-		if children, ok := commentsPointerMap[iComment.GetId()]; ok {
-			iComment.AddChildren(*children...)
-		}
-
-		if iComment.GetParentId() == uuid.Nil {
-			*comments = append(*comments, iComment)
-		}
+		*comments = append(*comments, iComment)
 	}
 
 	return comments, nil
