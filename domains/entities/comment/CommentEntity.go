@@ -1,6 +1,8 @@
 package comment
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 
 	u "github.com/duartqx/ddcomments/domains/entities/user"
@@ -8,13 +10,13 @@ import (
 
 type CommentEntity struct {
 	Id        uuid.UUID `db:"id" json:"id"`
-	ParentId  uuid.UUID `db:"parent_id"`
-	CreatorId uuid.UUID `db:"creator_id"`
-	ThreadId  uuid.UUID `db:"thread_id"`
+	ParentId  uuid.UUID `db:"parent_id" json:"parent_id"`
+	CreatorId uuid.UUID `db:"creator_id" json:"-"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	ThreadId  uuid.UUID `db:"thread_id" json:"-"`
 	Text      string    `db:"comment_text" json:"text"`
 
 	Creator  u.User     `json:"creator"`
-	Parent   Comment    `json:"parent"`
 	Children *[]Comment `json:"children"`
 }
 
@@ -42,8 +44,8 @@ func (c CommentEntity) GetCreator() u.User {
 	return c.Creator
 }
 
-func (c CommentEntity) GetParent() Comment {
-	return c.Parent
+func (c CommentEntity) GetCreatedAt() time.Time {
+	return c.CreatedAt
 }
 
 func (c CommentEntity) GetChilden() *[]Comment {
@@ -64,22 +66,23 @@ func (c *CommentEntity) SetCreatorId(creatorId uuid.UUID) Comment {
 	return c
 }
 
+func (c *CommentEntity) SetCreatedAt(createdAt time.Time) Comment {
+	c.CreatedAt = createdAt
+	return c
+}
+
 func (c *CommentEntity) SetText(text string) Comment {
 	c.Text = text
 	return c
 }
 
 func (c *CommentEntity) SetCreator(creator u.User) Comment {
+	c.CreatorId = creator.GetId()
 	c.Creator = creator
 	return c
 }
 
-func (c *CommentEntity) SetParent(parent Comment) Comment {
-	c.Parent = parent
-	return c
-}
-
-func (c *CommentEntity) SetChilden(child Comment) Comment {
-	*c.Children = append(*c.Children, child)
+func (c *CommentEntity) AddChildren(child ...Comment) Comment {
+	*c.Children = append(*c.Children, child...)
 	return c
 }
