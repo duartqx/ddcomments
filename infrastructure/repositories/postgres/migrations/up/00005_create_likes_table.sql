@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS Likes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id UUID NOT NULL REFERENCES Users(id),
+    comment_id UUID NOT NULL REFERENCES Comments(id)
+);
