@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -31,8 +32,24 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	log.Println("| Listening at port " + port)
-	// Run our server in a goroutine so that it doesn't block.
+	log.Println(
+		fmt.Sprintf(`
+______________________________________________________________________________
+
+ _____  _____  ______ _______ _______ _______ _______ _______ _______ _______ 
+|     \|     \|      |       |   |   |   |   |    ___|    |  |_     _|     __|
+|  --  |  --  |   ---|   -   |       |       |    ___|       | |   | |__     |
+|_____/|_____/|______|_______|__|_|__|__|_|__|_______|__|____| |___| |_______|
+
+
+DDComments running @ %s://%s
+______________________________________________________________________________
+`,
+			"http", srv.Addr,
+		),
+	)
+
+	// Run the server in a goroutine so that it doesn't block.
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
@@ -40,22 +57,16 @@ func main() {
 	}()
 
 	c := make(chan os.Signal, 1)
-	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
-	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+	// Graceful shutdowns when quit via SIGINT (Ctrl+C)
 	signal.Notify(c, os.Interrupt)
 
-	// Block until we receive our signal.
+	// Block until we interrupt signal
 	<-c
 
-	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
-	// Doesn't block if no connections, but will otherwise wait
-	// until the timeout deadline.
+
 	srv.Shutdown(ctx)
-	// Optionally, you could run srv.Shutdown in a goroutine and block on
-	// <-ctx.Done() if your application should wait for other services
-	// to finalize based on context cancellation.
-	log.Println("| Shutting down")
+
 	os.Exit(0)
 }
