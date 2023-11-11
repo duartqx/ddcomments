@@ -110,9 +110,9 @@ func (rl RequestLogger) getColored(value interface{}) string {
 	case rl.status >= 200 && rl.status < 300:
 		colored, _ = colors.ColorIt(colors.Green, value)
 	case rl.status >= 300 && rl.status < 400:
-		colored, _ = colors.ColorIt(colors.Yellow, value)
-	case rl.status >= 400 && rl.status < 500:
 		colored, _ = colors.ColorIt(colors.Magenta, value)
+	case rl.status >= 400 && rl.status < 500:
+		colored, _ = colors.ColorIt(colors.Yellow, value)
 	default:
 		colored, _ = colors.ColorIt(colors.Red, value)
 	}
