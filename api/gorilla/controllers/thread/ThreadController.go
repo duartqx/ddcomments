@@ -1,4 +1,4 @@
-package comment
+package thread
 
 import (
 	"encoding/json"
@@ -8,20 +8,20 @@ import (
 	"github.com/gorilla/mux"
 
 	h "github.com/duartqx/ddcomments/application/http"
-	cs "github.com/duartqx/ddcomments/application/services/comment"
+	ts "github.com/duartqx/ddcomments/application/services/thread"
 )
 
-type CommentController struct {
-	commentService *cs.CommentService
+type ThreadController struct {
+	threadService *ts.ThreadService
 }
 
-func GetNewCommentController(commentService *cs.CommentService) *CommentController {
-	return &CommentController{
-		commentService: commentService,
+func GetNewThreadController(threadService *ts.ThreadService) *ThreadController {
+	return &ThreadController{
+		threadService: threadService,
 	}
 }
 
-func (cc CommentController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (cc ThreadController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var response *h.HttpResponse
 
@@ -43,7 +43,7 @@ func (cc CommentController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cc CommentController) get(r *http.Request) *h.HttpResponse {
+func (cc ThreadController) get(r *http.Request) *h.HttpResponse {
 
 	thread_id, err := uuid.Parse(mux.Vars(r)["thread_id"])
 	if err != nil {
@@ -52,7 +52,7 @@ func (cc CommentController) get(r *http.Request) *h.HttpResponse {
 		}
 	}
 
-	comments, err := cc.commentService.GetAllCommentsByThreadId(thread_id)
+	comments, err := cc.threadService.GetAllCommentsByThreadId(thread_id)
 	if err != nil {
 		return &h.HttpResponse{
 			Status: http.StatusInternalServerError, Body: "Internal Server Error",

@@ -1,4 +1,4 @@
-package comment
+package thread
 
 import (
 	"github.com/google/uuid"
@@ -7,21 +7,21 @@ import (
 	r "github.com/duartqx/ddcomments/domains/repositories"
 )
 
-type CommentService struct {
-	commentRepository r.ICommentRepository
+type ThreadService struct {
+	threadRepository r.IThreadRepository
 }
 
-func GetNewCommentService(commentRepository r.ICommentRepository) *CommentService {
-	return &CommentService{
-		commentRepository: commentRepository,
+func GetNewThreadService(threadRepository r.IThreadRepository) *ThreadService {
+	return &ThreadService{
+		threadRepository: threadRepository,
 	}
 }
 
-func (cs CommentService) GetAllCommentsByThreadId(threadId uuid.UUID) (*[]c.Comment, error) {
+func (cs ThreadService) GetAllCommentsByThreadId(threadId uuid.UUID) (*[]c.Comment, error) {
 
 	commentsPointerMap := map[uuid.UUID]*[]c.Comment{}
 
-	comments, err := cs.commentRepository.FindAllByThreadId(threadId)
+	comments, err := cs.threadRepository.FindAllCommentsByThreadId(threadId)
 
 	if err != nil {
 		return nil, err

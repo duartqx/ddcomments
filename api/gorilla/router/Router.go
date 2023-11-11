@@ -11,8 +11,8 @@ import (
 	lm "github.com/duartqx/ddcomments/application/middleware/logger"
 	rm "github.com/duartqx/ddcomments/application/middleware/recovery"
 
-	cc "github.com/duartqx/ddcomments/api/gorilla/controllers/comment"
-	cs "github.com/duartqx/ddcomments/application/services/comment"
+	tc "github.com/duartqx/ddcomments/api/gorilla/controllers/thread"
+	ts "github.com/duartqx/ddcomments/application/services/thread"
 )
 
 func NotFoundHandler(r *mux.Router) http.Handler {
@@ -37,9 +37,9 @@ func MethodNotAllowedHandler(r *mux.Router) http.Handler {
 
 func GetMux(db *sqlx.DB) *mux.Router {
 
-	commentRepository := r.GetNewCommentRepository(db)
-	commentService := cs.GetNewCommentService(commentRepository)
-	commentController := cc.GetNewCommentController(commentService)
+	threadRepository := r.GetNewThreadRepository(db)
+	threadService := ts.GetNewThreadService(threadRepository)
+	threadController := tc.GetNewThreadController(threadService)
 
 	router := mux.NewRouter()
 
@@ -48,12 +48,12 @@ func GetMux(db *sqlx.DB) *mux.Router {
 
 	router.Use(rm.RecoveryMiddleware, lm.LoggerMiddleware)
 
-	commentSubrouter := router.PathPrefix("/comment").Subrouter()
+	commentSubrouter := router.PathPrefix("/thread").Subrouter()
 
 	commentSubrouter.
-		Name("comment").
+		Name("thread").
 		Path("/{thread_id}").
-		Handler(commentController).
+		Handler(threadController).
 		Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete)
 
 	return router
