@@ -7,6 +7,8 @@ import (
 	c "github.com/duartqx/ddcomments/domains/entities/comment"
 	t "github.com/duartqx/ddcomments/domains/entities/thread"
 	u "github.com/duartqx/ddcomments/domains/entities/user"
+
+	m "github.com/duartqx/ddcomments/domains/models"
 )
 
 type ThreadRepository struct {
@@ -21,14 +23,18 @@ func GetNewThreadRepository(db *sqlx.DB) *ThreadRepository {
 
 func (tr ThreadRepository) GetCommentModel() *c.CommentEntity {
 	return &c.CommentEntity{
-		Children: &[]c.Comment{},
+		Children: &[]m.Comment{},
 		Creator:  &u.UserDTO{},
 	}
 }
 
-func (tr ThreadRepository) FindAllCommentsByThreadId(id uuid.UUID) (*[]c.Comment, error) {
+func (tr ThreadRepository) GetThreadModel() *t.ThreadEntity {
+	return &t.ThreadEntity{}
+}
 
-	comments := &[]c.Comment{}
+func (tr ThreadRepository) FindAllCommentsByThreadId(id uuid.UUID) (*[]m.Comment, error) {
+
+	comments := &[]m.Comment{}
 
 	query := `
 		SELECT 
@@ -93,7 +99,7 @@ func (tr ThreadRepository) FindAllCommentsByThreadId(id uuid.UUID) (*[]c.Comment
 			SetName(creator_name).
 			SetEmail(creator_email)
 
-		var iComment c.Comment = comment
+		var iComment m.Comment = comment
 
 		*comments = append(*comments, iComment)
 	}
@@ -101,8 +107,16 @@ func (tr ThreadRepository) FindAllCommentsByThreadId(id uuid.UUID) (*[]c.Comment
 	return comments, nil
 }
 
-func (tr ThreadRepository) FindById(id uuid.UUID) (t.Thread, error) {
-	return nil, nil
+func (tr ThreadRepository) FindOneById(id uuid.UUID) (m.Thread, error) {
+
+	thread := tr.GetThreadModel()
+
+	if err := tr.db.QueryRow(
+		"SELECT * FROM thread WHERE id = $1 LIMIT 1", id,
+	).Scan(&thread); err != nil {
+		return nil, err
+	}
+	return thread, nil
 }
 
 func (tr ThreadRepository) ExistsById(id uuid.UUID) (exists *bool) {

@@ -1,12 +1,9 @@
-package likes
+package models
 
 import (
 	"time"
 
 	"github.com/google/uuid"
-
-	c "github.com/duartqx/ddcomments/domains/entities/comment"
-	u "github.com/duartqx/ddcomments/domains/entities/user"
 )
 
 type Like interface {
@@ -15,14 +12,14 @@ type Like interface {
 	GetCommentId() uuid.UUID
 	GetCreatedAt() time.Time
 
-	GetUser() u.User
-	GetComment() c.Comment
+	GetUser() User
+	GetComment() Comment
 
 	SetId(id uuid.UUID) Like
 	SetUserId(userId uuid.UUID) Like
 	SetCommentId(commentId uuid.UUID) Like
 	SetCreatedAt(t time.Time) Like
 
-	SetUser(user u.User) Like
-	SetComment(comment c.Comment) Like
+	SetUser(user User) Like
+	SetComment(comment Comment) Like
 }

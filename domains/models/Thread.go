@@ -1,4 +1,4 @@
-package thread
+package models
 
 import "github.com/google/uuid"
 

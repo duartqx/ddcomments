@@ -14,3 +14,8 @@ func GetThreadIdFromVars(r *http.Request) (uuid.UUID, error) {
 func GetCommentIdFromVars(r *http.Request) (uuid.UUID, error) {
 	return uuid.Parse(mux.Vars(r)["comment_id"])
 }
+
+func HasCommentIdVar(r *http.Request) bool {
+	_, ok := mux.Vars(r)["comment_id"]
+	return ok
+}

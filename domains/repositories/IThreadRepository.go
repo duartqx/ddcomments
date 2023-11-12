@@ -3,12 +3,11 @@ package repositories
 import (
 	"github.com/google/uuid"
 
-	c "github.com/duartqx/ddcomments/domains/entities/comment"
-	t "github.com/duartqx/ddcomments/domains/entities/thread"
+	m "github.com/duartqx/ddcomments/domains/models"
 )
 
 type IThreadRepository interface {
-	FindById(id uuid.UUID) (t.Thread, error)
+	FindOneById(id uuid.UUID) (m.Thread, error)
 	ExistsById(id uuid.UUID) *bool
-	FindAllCommentsByThreadId(id uuid.UUID) (*[]c.Comment, error)
+	FindAllCommentsByThreadId(id uuid.UUID) (*[]m.Comment, error)
 }

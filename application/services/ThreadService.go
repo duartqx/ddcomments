@@ -3,7 +3,7 @@ package services
 import (
 	"github.com/google/uuid"
 
-	c "github.com/duartqx/ddcomments/domains/entities/comment"
+	m "github.com/duartqx/ddcomments/domains/models"
 	r "github.com/duartqx/ddcomments/domains/repositories"
 )
 
@@ -17,9 +17,9 @@ func GetNewThreadService(threadRepository r.IThreadRepository) *ThreadService {
 	}
 }
 
-func (cs ThreadService) GetAllCommentsByThreadId(threadId uuid.UUID) (*[]c.Comment, error) {
+func (cs ThreadService) GetAllCommentsByThreadId(threadId uuid.UUID) (*[]m.Comment, error) {
 
-	commentsPointerMap := map[uuid.UUID]*[]c.Comment{}
+	commentsPointerMap := map[uuid.UUID]*[]m.Comment{}
 
 	comments, err := cs.threadRepository.FindAllCommentsByThreadId(threadId)
 
@@ -29,7 +29,7 @@ func (cs ThreadService) GetAllCommentsByThreadId(threadId uuid.UUID) (*[]c.Comme
 
 	for _, cmmt := range *comments {
 		if sisters, ok := commentsPointerMap[cmmt.GetParentId()]; !ok {
-			commentsPointerMap[cmmt.GetParentId()] = &[]c.Comment{cmmt}
+			commentsPointerMap[cmmt.GetParentId()] = &[]m.Comment{cmmt}
 		} else {
 			*sisters = append(*sisters, cmmt)
 		}

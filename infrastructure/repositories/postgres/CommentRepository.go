@@ -8,6 +8,7 @@ import (
 
 	c "github.com/duartqx/ddcomments/domains/entities/comment"
 	u "github.com/duartqx/ddcomments/domains/entities/user"
+	m "github.com/duartqx/ddcomments/domains/models"
 )
 
 type CommentRepository struct {
@@ -22,20 +23,17 @@ func GetNewCommentRepository(db *sqlx.DB) *CommentRepository {
 
 func (cr CommentRepository) GetModel() *c.CommentEntity {
 	return &c.CommentEntity{
-		Children: &[]c.Comment{},
+		Children: &[]m.Comment{},
 		Creator:  &u.UserDTO{},
 	}
 }
 
-func (cr CommentRepository) Create(comment c.Comment) error {
+func (cr CommentRepository) Create(comment m.Comment) error {
 	var (
 		id        uuid.UUID
 		createdAt time.Time
-	)
-
-	var (
-		query  string
-		values []any
+		query     string
+		values    []any
 	)
 
 	if comment.GetParentId() == uuid.Nil {
@@ -49,7 +47,6 @@ func (cr CommentRepository) Create(comment c.Comment) error {
 			comment.GetThreadId(),
 			comment.GetText(),
 		}
-
 	} else {
 		query = `
 			INSERT INTO comments (parent_id, creator_id, thread_id, comment_text)
@@ -74,7 +71,7 @@ func (cr CommentRepository) Create(comment c.Comment) error {
 	return nil
 }
 
-func (cr CommentRepository) FindOneById(id uuid.UUID) (c.Comment, error) {
+func (cr CommentRepository) FindOneById(id uuid.UUID) (m.Comment, error) {
 	query := `
 		SELECT id, parent_id, creator_id, thread_id, comment_text, created_at
 		FROM comments
@@ -92,15 +89,15 @@ func (cr CommentRepository) FindOneById(id uuid.UUID) (c.Comment, error) {
 	return comment, nil
 }
 
-func (cr CommentRepository) FindAllByThreadId(id uuid.UUID) (*[]c.Comment, error) {
+func (cr CommentRepository) FindAllByThreadId(id uuid.UUID) (*[]m.Comment, error) {
 	return nil, nil
 }
 
-func (cr CommentRepository) FindAllByParentId(id uuid.UUID) (*[]c.Comment, error) {
+func (cr CommentRepository) FindAllByParentId(id uuid.UUID) (*[]m.Comment, error) {
 	return nil, nil
 }
 
-func (cr CommentRepository) FindAllByCreatorId(id uuid.UUID) (*[]c.Comment, error) {
+func (cr CommentRepository) FindAllByCreatorId(id uuid.UUID) (*[]m.Comment, error) {
 	return nil, nil
 }
 

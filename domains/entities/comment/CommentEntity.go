@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	u "github.com/duartqx/ddcomments/domains/entities/user"
+	m "github.com/duartqx/ddcomments/domains/models"
 )
 
 type CommentEntity struct {
@@ -16,8 +16,8 @@ type CommentEntity struct {
 	ThreadId  uuid.UUID `db:"thread_id" json:"-"`
 	Text      string    `db:"comment_text" json:"text"`
 
-	Creator  u.User     `json:"creator"`
-	Children *[]Comment `json:"children"`
+	Creator  m.User       `json:"creator"`
+	Children *[]m.Comment `json:"children"`
 }
 
 func (c CommentEntity) GetId() uuid.UUID {
@@ -40,7 +40,7 @@ func (c CommentEntity) GetText() string {
 	return c.Text
 }
 
-func (c CommentEntity) GetCreator() u.User {
+func (c CommentEntity) GetCreator() m.User {
 	return c.Creator
 }
 
@@ -48,41 +48,46 @@ func (c CommentEntity) GetCreatedAt() time.Time {
 	return c.CreatedAt
 }
 
-func (c CommentEntity) GetChilden() *[]Comment {
+func (c CommentEntity) GetChilden() *[]m.Comment {
 	return c.Children
 }
 
-func (c *CommentEntity) SetId(id uuid.UUID) Comment {
+func (c *CommentEntity) SetId(id uuid.UUID) m.Comment {
 	c.Id = id
 	return c
 }
-func (c *CommentEntity) SetParentId(parentId uuid.UUID) Comment {
+func (c *CommentEntity) SetParentId(parentId uuid.UUID) m.Comment {
 	c.ParentId = parentId
 	return c
 }
 
-func (c *CommentEntity) SetCreatorId(creatorId uuid.UUID) Comment {
+func (c *CommentEntity) SetThreadId(threadId uuid.UUID) m.Comment {
+	c.ThreadId = threadId
+	return c
+}
+
+func (c *CommentEntity) SetCreatorId(creatorId uuid.UUID) m.Comment {
 	c.CreatorId = creatorId
 	return c
 }
 
-func (c *CommentEntity) SetCreatedAt(createdAt time.Time) Comment {
+func (c *CommentEntity) SetCreatedAt(createdAt time.Time) m.Comment {
 	c.CreatedAt = createdAt
 	return c
 }
 
-func (c *CommentEntity) SetText(text string) Comment {
+func (c *CommentEntity) SetText(text string) m.Comment {
 	c.Text = text
 	return c
 }
 
-func (c *CommentEntity) SetCreator(creator u.User) Comment {
+func (c *CommentEntity) SetCreator(creator m.User) m.Comment {
 	c.CreatorId = creator.GetId()
 	c.Creator = creator
 	return c
 }
 
-func (c *CommentEntity) AddChildren(child ...Comment) Comment {
+func (c *CommentEntity) AddChildren(child ...m.Comment) m.Comment {
 	*c.Children = append(*c.Children, child...)
 	return c
 }

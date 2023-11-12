@@ -2,6 +2,8 @@ package user
 
 import (
 	"github.com/google/uuid"
+
+	m "github.com/duartqx/ddcomments/domains/models"
 )
 
 type UserDTO struct {
@@ -26,21 +28,21 @@ func (u UserDTO) GetPassword() string {
 	return ""
 }
 
-func (u *UserDTO) SetId(id uuid.UUID) User {
+func (u *UserDTO) SetId(id uuid.UUID) m.User {
 	u.Id = id
 	return u
 }
 
-func (u *UserDTO) SetEmail(email string) User {
+func (u *UserDTO) SetEmail(email string) m.User {
 	u.Email = email
 	return u
 }
 
-func (u *UserDTO) SetName(name string) User {
+func (u *UserDTO) SetName(name string) m.User {
 	u.Name = name
 	return u
 }
 
-func (u *UserDTO) SetPassword(password string) User {
+func (u *UserDTO) SetPassword(password string) m.User {
 	return u
 }

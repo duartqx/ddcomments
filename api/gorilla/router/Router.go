@@ -60,7 +60,7 @@ func GetMux(db *sqlx.DB) *mux.Router {
 		Handler(threadController).
 		Methods(http.MethodGet)
 
-	commentSubrouter := router.PathPrefix("/comment").Subrouter()
+	commentSubrouter := threadSubrouter.PathPrefix("/{thread_id}/comment").Subrouter()
 
 	commentSubrouter.
 		Name("comment").

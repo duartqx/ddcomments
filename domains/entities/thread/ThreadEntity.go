@@ -3,13 +3,13 @@ package thread
 import (
 	"github.com/google/uuid"
 
-	c "github.com/duartqx/ddcomments/domains/entities/comment"
+	m "github.com/duartqx/ddcomments/domains/models"
 )
 
 type ThreadEntity struct {
 	Id       uuid.UUID    `db:"id" json:"id"`
 	Slug     string       `db:"slug" json:"slug"`
-	Comments *[]c.Comment `json:"comments"`
+	Comments *[]m.Comment `json:"comments"`
 }
 
 func (t ThreadEntity) GetId() uuid.UUID {

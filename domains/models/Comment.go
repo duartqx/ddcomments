@@ -1,11 +1,9 @@
-package comment
+package models
 
 import (
 	"time"
 
 	"github.com/google/uuid"
-
-	u "github.com/duartqx/ddcomments/domains/entities/user"
 )
 
 type Comment interface {
@@ -16,7 +14,7 @@ type Comment interface {
 	GetThreadId() uuid.UUID
 	GetText() string
 
-	GetCreator() u.User
+	GetCreator() User
 	GetChilden() *[]Comment
 
 	SetId(id uuid.UUID) Comment
@@ -24,7 +22,8 @@ type Comment interface {
 	SetCreatorId(creatorId uuid.UUID) Comment
 	SetCreatedAt(t time.Time) Comment
 	SetText(text string) Comment
+	SetThreadId(id uuid.UUID) Comment
 
-	SetCreator(creator u.User) Comment
+	SetCreator(creator User) Comment
 	AddChildren(child ...Comment) Comment
 }
