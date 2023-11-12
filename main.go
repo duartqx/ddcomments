@@ -52,7 +52,7 @@ ______________________________________________________________________________
 	// Run the server in a goroutine so that it doesn't block.
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+			log.Fatalln(err)
 		}
 	}()
 
