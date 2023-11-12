@@ -104,3 +104,12 @@ func (tr ThreadRepository) FindAllCommentsByThreadId(id uuid.UUID) (*[]c.Comment
 func (tr ThreadRepository) FindById(id uuid.UUID) (t.Thread, error) {
 	return nil, nil
 }
+
+func (tr ThreadRepository) ExistsById(id uuid.UUID) (exists *bool) {
+	tr.db.QueryRow(
+		"SELECT EXISTS (SELECT 1 FROM threads WHERE id = $1);",
+		id,
+	).Scan(&exists)
+
+	return exists
+}
