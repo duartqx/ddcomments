@@ -9,5 +9,6 @@ import (
 
 type IThreadRepository interface {
 	FindById(id uuid.UUID) (t.Thread, error)
+	ExistsById(id uuid.UUID) *bool
 	FindAllCommentsByThreadId(id uuid.UUID) (*[]c.Comment, error)
 }
