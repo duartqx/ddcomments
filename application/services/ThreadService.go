@@ -1,4 +1,4 @@
-package thread
+package services
 
 import (
 	"github.com/google/uuid"
@@ -42,4 +42,8 @@ func (cs ThreadService) GetAllCommentsByThreadId(threadId uuid.UUID) (*[]c.Comme
 	rootComments, _ := commentsPointerMap[uuid.Nil]
 
 	return rootComments, nil
+}
+
+func (cs ThreadService) ExistsById(threadId uuid.UUID) *bool {
+	return cs.threadRepository.ExistsById(threadId)
 }
