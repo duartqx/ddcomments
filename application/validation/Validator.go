@@ -25,11 +25,10 @@ func (v Validator) Decode(errs error) *map[string]interface{} {
 
 	validationErrors := map[string]validationErrorResponse{}
 	for _, err := range errs.(validator.ValidationErrors) {
-		e := validationErrorResponse{
-			Tag:   err.Tag(),   // Export struct tag
-			Value: err.Value(), // Export field value
+		validationErrors[err.Field()] = validationErrorResponse{
+			Tag:   err.Tag(),
+			Value: err.Value(),
 		}
-		validationErrors[err.Field()] = e
 	}
 	return &map[string]interface{}{"errors": &validationErrors}
 }
