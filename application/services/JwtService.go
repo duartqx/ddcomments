@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -20,18 +21,18 @@ type claimsUser struct {
 }
 
 type JwtAuthService struct {
-	userRepository r.IUserRepository
-	sessionStore   r.ISessionRepository
-	secret         *[]byte
+	userRepository    r.IUserRepository
+	sessionRepository r.ISessionRepository
+	secret            *[]byte
 }
 
 func NewJwtAuthService(
 	userRepository r.IUserRepository, sessionStore r.ISessionRepository, secret *[]byte,
 ) *JwtAuthService {
 	return &JwtAuthService{
-		userRepository: userRepository,
-		sessionStore:   sessionStore,
-		secret:         secret,
+		userRepository:    userRepository,
+		sessionRepository: sessionStore,
+		secret:            secret,
 	}
 }
 
@@ -60,31 +61,34 @@ func (jas JwtAuthService) generateToken(user *claimsUser, expiresAt time.Time) (
 	return tokenStr, nil
 }
 
-func (jas JwtAuthService) getUnparsedToken(authorization, cookie string) string {
+func (jas JwtAuthService) getUnparsedToken(authorization string, cookie *http.Cookie) string {
 	if authorization != "" {
 		token, found := strings.CutPrefix(authorization, "Bearer ")
 		if found {
 			return token
 		}
 	}
-	return cookie
+	if cookie != nil {
+		return cookie.Value
+	}
+	return ""
 }
 
-func (jas JwtAuthService) ValidateAuth(authorization, cookie string) (interface{}, error) {
+func (jas JwtAuthService) ValidateAuth(authorization string, cookie *http.Cookie) (interface{}, error) {
 
 	unparsedToken := jas.getUnparsedToken(authorization, cookie)
 	if unparsedToken == "" {
 		return nil, fmt.Errorf("Missing Token")
 	}
 
-	if _, err := jas.sessionStore.Get(unparsedToken); err != nil {
+	if _, err := jas.sessionRepository.Get(unparsedToken); err != nil {
 		return nil, fmt.Errorf("Missing session")
 	}
 
 	parsedToken, err := jwt.Parse(unparsedToken, jas.keyFunc)
 	if err != nil || !parsedToken.Valid {
 
-		jas.sessionStore.Delete(unparsedToken)
+		jas.sessionRepository.Delete(unparsedToken)
 
 		return nil, fmt.Errorf("Expired session")
 	}
@@ -97,25 +101,25 @@ func (jas JwtAuthService) ValidateAuth(authorization, cookie string) (interface{
 	return claims["user"], nil
 }
 
-func (jas JwtAuthService) Login(user m.User) (token string, err error) {
+func (jas JwtAuthService) Login(user m.User) (token string, expiresAt time.Time, err error) {
 
 	if user.GetEmail() == "" || user.GetPassword() == "" {
-		return token, fmt.Errorf("Invalid Email or Password")
+		return token, expiresAt, fmt.Errorf("Invalid Email or Password")
 	}
 
 	dbUser, err := jas.userRepository.FindByEmail(user.GetEmail())
 	if err != nil {
-		return token, fmt.Errorf("Invalid Email")
+		return token, expiresAt, fmt.Errorf("Invalid Email")
 	}
 
 	if err := bcrypt.CompareHashAndPassword(
 		[]byte(dbUser.GetPassword()), []byte(user.GetPassword()),
 	); err != nil {
-		return token, fmt.Errorf("Invalid Password")
+		return token, expiresAt, fmt.Errorf("Invalid Password")
 	}
 
 	createdAt := time.Now()
-	expiresAt := createdAt.Add(time.Hour * 12)
+	expiresAt = createdAt.Add(time.Hour * 12)
 
 	token, err = jas.generateToken(
 		&claimsUser{
@@ -126,23 +130,23 @@ func (jas JwtAuthService) Login(user m.User) (token string, err error) {
 		expiresAt,
 	)
 	if err != nil {
-		return "", fmt.Errorf("Could not generate token")
+		return "", expiresAt, fmt.Errorf("Could not generate token")
 	}
 
-	if err := jas.sessionStore.Set(token, createdAt, dbUser.GetId()); err != nil {
-		return "", err
+	if err := jas.sessionRepository.Set(token, createdAt, dbUser.GetId()); err != nil {
+		return "", expiresAt, err
 	}
 
-	return token, nil
+	return token, expiresAt, nil
 }
 
-func (jas *JwtAuthService) Logout(authorization, cookie string) error {
+func (jas *JwtAuthService) Logout(authorization string, cookie *http.Cookie) error {
 	unparsedToken := jas.getUnparsedToken(authorization, cookie)
 	if unparsedToken == "" {
 		return fmt.Errorf("Missing Token")
 	}
 
-	if err := jas.sessionStore.Delete(unparsedToken); err != nil {
+	if err := jas.sessionRepository.Delete(unparsedToken); err != nil {
 		return fmt.Errorf("Invalid Token")
 	}
 
