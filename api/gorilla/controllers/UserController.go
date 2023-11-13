@@ -13,7 +13,7 @@ type UserController struct {
 	userService *s.UserService
 }
 
-func NewUserController(userService *s.UserService) *UserController {
+func GetNewUserController(userService *s.UserService) *UserController {
 	return &UserController{
 		userService: userService,
 	}
@@ -53,8 +53,11 @@ func (uc UserController) post(r *http.Request) *h.HttpResponse {
 	}
 
 	if err := uc.userService.Create(user); err != nil {
+		var body interface{}
+		json.Unmarshal([]byte(err.Error()), &body)
+
 		return &h.HttpResponse{
-			Body:   err.Error(),
+			Body:   body,
 			Status: http.StatusBadRequest,
 		}
 	}
