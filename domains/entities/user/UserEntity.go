@@ -8,9 +8,9 @@ import (
 
 type UserEntity struct {
 	Id       uuid.UUID `db:"id" json:"id"`
-	Email    string    `db:"email" json:"email"`
-	Name     string    `db:"name" json:"name"`
-	Password string    `db:"password" json:"password"`
+	Email    string    `db:"email" json:"email" validate:"email,required"`
+	Name     string    `db:"name" json:"name" validate:"required,min=3,max=50"`
+	Password string    `db:"password" json:"password" validate:"required"`
 }
 
 func (u UserEntity) GetId() uuid.UUID {
