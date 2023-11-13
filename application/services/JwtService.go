@@ -13,7 +13,7 @@ import (
 	r "github.com/duartqx/ddcomments/domains/repositories"
 )
 
-type ClaimsUser struct {
+type claimsUser struct {
 	Id    uuid.UUID
 	Email string
 	Name  string
@@ -39,7 +39,7 @@ func (jas JwtAuthService) keyFunc(t *jwt.Token) (interface{}, error) {
 	return *jas.secret, nil
 }
 
-func (jas JwtAuthService) generateToken(user *ClaimsUser, expiresAt time.Time) (string, error) {
+func (jas JwtAuthService) generateToken(user *claimsUser, expiresAt time.Time) (string, error) {
 
 	claims := jwt.MapClaims{
 		"user": map[string]interface{}{
@@ -118,7 +118,7 @@ func (jas JwtAuthService) Login(user m.User) (token string, err error) {
 	expiresAt := createdAt.Add(time.Hour * 12)
 
 	token, err = jas.generateToken(
-		&ClaimsUser{
+		&claimsUser{
 			Id:    dbUser.GetId(),
 			Email: dbUser.GetEmail(),
 			Name:  dbUser.GetName(),
