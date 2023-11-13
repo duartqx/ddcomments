@@ -37,6 +37,10 @@ func MethodNotAllowedHandler(r *mux.Router) http.Handler {
 
 func GetMux(db *sqlx.DB) *mux.Router {
 
+	userRepository := r.GetNewUserRepository(db)
+	userService := s.GetNewUserService(userRepository)
+	userController := c.GetNewUserController(userService)
+
 	threadRepository := r.GetNewThreadRepository(db)
 	threadService := s.GetNewThreadService(threadRepository)
 	threadController := c.GetNewThreadController(threadService)
@@ -51,6 +55,14 @@ func GetMux(db *sqlx.DB) *mux.Router {
 	router.MethodNotAllowedHandler = MethodNotAllowedHandler(router)
 
 	router.Use(rm.RecoveryMiddleware, lm.LoggerMiddleware)
+
+	userSubrouter := router.PathPrefix("/user").Subrouter()
+
+	userSubrouter.
+		Name("user").
+		Path("/").
+		Handler(userController).
+		Methods(http.MethodPost)
 
 	threadSubrouter := router.PathPrefix("/thread").Subrouter()
 
