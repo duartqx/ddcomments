@@ -25,7 +25,7 @@ func (uc UserController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodPost:
-		response = uc.post(r)
+		response = uc.create(r)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -41,7 +41,7 @@ func (uc UserController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (uc UserController) post(r *http.Request) *h.HttpResponse {
+func (uc UserController) create(r *http.Request) *h.HttpResponse {
 
 	var user *u.UserEntity
 
