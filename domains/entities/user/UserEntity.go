@@ -13,6 +13,14 @@ type UserEntity struct {
 	Password string    `db:"password" json:"password" validate:"required"`
 }
 
+func (u UserEntity) Clean() m.User {
+	return &UserDTO{
+		Id:    u.GetId(),
+		Name:  u.GetName(),
+		Email: u.GetEmail(),
+	}
+}
+
 func (u UserEntity) GetId() uuid.UUID {
 	return u.Id
 }

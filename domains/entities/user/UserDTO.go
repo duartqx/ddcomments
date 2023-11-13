@@ -12,6 +12,10 @@ type UserDTO struct {
 	Name  string    `db:"name" json:"name"`
 }
 
+func (u UserDTO) Clean() m.User {
+	return &u
+}
+
 func (u UserDTO) GetId() uuid.UUID {
 	return u.Id
 }
