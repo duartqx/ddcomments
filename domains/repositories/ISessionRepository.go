@@ -3,8 +3,9 @@ package repositories
 import (
 	"time"
 
-	m "github.com/duartqx/ddcomments/domains/models"
 	"github.com/google/uuid"
+
+	m "github.com/duartqx/ddcomments/domains/models"
 )
 
 type ISessionRepository interface {
