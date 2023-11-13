@@ -3,6 +3,7 @@ package models
 import "github.com/google/uuid"
 
 type User interface {
+	Clean() User
 	GetId() uuid.UUID
 	GetEmail() string
 	GetName() string
