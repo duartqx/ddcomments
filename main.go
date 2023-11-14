@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"time"
 
-	r "github.com/duartqx/ddcomments/api/gorilla/router"
+	r "github.com/duartqx/ddcomments/api/router"
 	repo "github.com/duartqx/ddcomments/infrastructure/repositories/postgres"
 )
 

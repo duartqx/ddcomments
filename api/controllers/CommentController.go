@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/duartqx/ddcomments/api/gorilla/utils"
+	"github.com/duartqx/ddcomments/api/utils"
 	h "github.com/duartqx/ddcomments/application/http"
 
 	s "github.com/duartqx/ddcomments/application/services"

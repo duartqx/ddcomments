@@ -3,19 +3,18 @@ package utils
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
 func GetThreadIdFromVars(r *http.Request) (uuid.UUID, error) {
-	return uuid.Parse(mux.Vars(r)["thread_id"])
+	return uuid.Parse(chi.URLParam(r, "thread_id"))
 }
 
 func GetCommentIdFromVars(r *http.Request) (uuid.UUID, error) {
-	return uuid.Parse(mux.Vars(r)["comment_id"])
+	return uuid.Parse(chi.URLParam(r, "comment_id"))
 }
 
 func HasCommentIdVar(r *http.Request) bool {
-	_, ok := mux.Vars(r)["comment_id"]
-	return ok
+	return chi.URLParam(r, "comment_id") != ""
 }

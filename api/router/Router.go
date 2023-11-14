@@ -1,9 +1,7 @@
 package router
 
 import (
-	"net/http"
-
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 
 	r "github.com/duartqx/ddcomments/infrastructure/repositories/postgres"
@@ -11,7 +9,7 @@ import (
 	lm "github.com/duartqx/ddcomments/application/middleware/logger"
 	rm "github.com/duartqx/ddcomments/application/middleware/recovery"
 
-	c "github.com/duartqx/ddcomments/api/gorilla/controllers"
+	c "github.com/duartqx/ddcomments/api/controllers"
 	s "github.com/duartqx/ddcomments/application/services"
 )
 
@@ -34,27 +32,12 @@ func (ro *Router) SetSecret(secret []byte) *Router {
 	return ro
 }
 
-func (ro Router) notFoundHandler(r *mux.Router) http.Handler {
-	return r.
-		NewRoute().
-		BuildOnly().
-		Handler(lm.LoggerMiddleware(http.HandlerFunc(http.NotFound))).
-		GetHandler()
+func threadSubrouter(threadController *c.ThreadController) *chi.Mux {
+	r := chi.NewRouter()
+	return r
 }
 
-func (ro Router) methodNotAllowedHandler(r *mux.Router) http.Handler {
-	e := func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "", http.StatusMethodNotAllowed)
-	}
-
-	return r.
-		NewRoute().
-		BuildOnly().
-		Handler(lm.LoggerMiddleware(http.HandlerFunc(e))).
-		GetHandler()
-}
-
-func (ro Router) Build() *mux.Router {
+func (ro Router) Build() *chi.Mux {
 
 	userRepository := r.GetNewUserRepository(ro.db)
 	userService := s.GetNewUserService(userRepository)
@@ -71,36 +54,24 @@ func (ro Router) Build() *mux.Router {
 	// jwtAuthService := s.NewJwtAuthService(userRepository, r.NewSessionStore(), ro.secret)
 	// jwtController := c.NewJwtController(jwtAuthService)
 
-	router := mux.NewRouter()
-
-	router.NotFoundHandler = ro.notFoundHandler(router)
-	router.MethodNotAllowedHandler = ro.methodNotAllowedHandler(router)
+	router := chi.NewRouter()
 
 	router.Use(rm.RecoveryMiddleware, lm.LoggerMiddleware)
 
-	userSubrouter := router.PathPrefix("/user").Subrouter()
+	userSubrouter := chi.NewRouter()
+	userSubrouter.Handle("/", userController)
 
-	userSubrouter.
-		Name("user").
-		Path("/").
-		Handler(userController).
-		Methods(http.MethodPost)
+	router.Mount("/user", userSubrouter)
 
-	threadSubrouter := router.PathPrefix("/thread").Subrouter()
+	threadSubrouter := chi.NewRouter()
+	threadSubrouter.Handle("/{thread_id}", threadController)
 
-	threadSubrouter.
-		Name("thread").
-		Path("/{thread_id}").
-		Handler(threadController).
-		Methods(http.MethodGet)
+	commentSubrouter := chi.NewRouter()
+	commentSubrouter.Handle("/", commentController)
 
-	commentSubrouter := threadSubrouter.PathPrefix("/{thread_id}/comment").Subrouter()
+	threadSubrouter.Mount("/{thread_id}/comment", commentSubrouter)
 
-	commentSubrouter.
-		Name("comment").
-		Path("/").
-		Handler(commentController).
-		Methods(http.MethodPost)
+	router.Mount("/thread", threadSubrouter)
 
 	return router
 }
