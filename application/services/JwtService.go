@@ -14,7 +14,7 @@ import (
 	r "github.com/duartqx/ddcomments/domains/repositories"
 )
 
-type claimsUser struct {
+type ClaimsUser struct {
 	Id    uuid.UUID
 	Email string
 	Name  string
@@ -40,15 +40,11 @@ func (jas JwtAuthService) keyFunc(t *jwt.Token) (interface{}, error) {
 	return *jas.secret, nil
 }
 
-func (jas JwtAuthService) generateToken(user *claimsUser, expiresAt time.Time) (string, error) {
+func (jas JwtAuthService) generateToken(user *ClaimsUser, expiresAt time.Time) (string, error) {
 
 	claims := jwt.MapClaims{
-		"user": map[string]interface{}{
-			"id":    user.Id,
-			"email": user.Email,
-			"name":  user.Name,
-		},
-		"exp": expiresAt.Unix(),
+		"user": *user,
+		"exp":  expiresAt.Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -81,16 +77,16 @@ func (jas JwtAuthService) ValidateAuth(authorization string, cookie *http.Cookie
 		return nil, fmt.Errorf("Missing Token")
 	}
 
-	if _, err := jas.sessionRepository.Get(unparsedToken); err != nil {
-		return nil, fmt.Errorf("Missing session")
-	}
-
 	parsedToken, err := jwt.Parse(unparsedToken, jas.keyFunc)
 	if err != nil || !parsedToken.Valid {
 
 		jas.sessionRepository.Delete(unparsedToken)
 
 		return nil, fmt.Errorf("Expired session")
+	}
+
+	if _, err := jas.sessionRepository.Get(unparsedToken); err != nil {
+		return nil, fmt.Errorf("Missing session")
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
@@ -122,7 +118,7 @@ func (jas JwtAuthService) Login(user m.User) (token string, expiresAt time.Time,
 	expiresAt = createdAt.Add(time.Hour * 12)
 
 	token, err = jas.generateToken(
-		&claimsUser{
+		&ClaimsUser{
 			Id:    dbUser.GetId(),
 			Email: dbUser.GetEmail(),
 			Name:  dbUser.GetName(),
