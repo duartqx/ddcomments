@@ -9,19 +9,19 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/duartqx/ddcomments/api/gorilla/router"
-	r "github.com/duartqx/ddcomments/infrastructure/repositories/postgres"
+	r "github.com/duartqx/ddcomments/api/gorilla/router"
+	repo "github.com/duartqx/ddcomments/infrastructure/repositories/postgres"
 )
 
 func main() {
 
-	db, err := r.GetDBConnection()
+	db, err := repo.GetDBConnection()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer db.Close()
 
-	mux := router.GetMux(db)
+	mux := r.NewRouterBuilder().SetDb(db).SetSecret([]byte("secret")).Build()
 
 	port := ":8000"
 

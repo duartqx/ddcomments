@@ -15,7 +15,26 @@ import (
 	s "github.com/duartqx/ddcomments/application/services"
 )
 
-func NotFoundHandler(r *mux.Router) http.Handler {
+type Router struct {
+	db     *sqlx.DB
+	secret *[]byte
+}
+
+func NewRouterBuilder() *Router {
+	return &Router{}
+}
+
+func (ro *Router) SetDb(db *sqlx.DB) *Router {
+	ro.db = db
+	return ro
+}
+
+func (ro *Router) SetSecret(secret []byte) *Router {
+	ro.secret = &secret
+	return ro
+}
+
+func (ro Router) notFoundHandler(r *mux.Router) http.Handler {
 	return r.
 		NewRoute().
 		BuildOnly().
@@ -23,7 +42,7 @@ func NotFoundHandler(r *mux.Router) http.Handler {
 		GetHandler()
 }
 
-func MethodNotAllowedHandler(r *mux.Router) http.Handler {
+func (ro Router) methodNotAllowedHandler(r *mux.Router) http.Handler {
 	e := func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusMethodNotAllowed)
 	}
@@ -35,24 +54,27 @@ func MethodNotAllowedHandler(r *mux.Router) http.Handler {
 		GetHandler()
 }
 
-func GetMux(db *sqlx.DB) *mux.Router {
+func (ro Router) Build() *mux.Router {
 
-	userRepository := r.GetNewUserRepository(db)
+	userRepository := r.GetNewUserRepository(ro.db)
 	userService := s.GetNewUserService(userRepository)
 	userController := c.GetNewUserController(userService)
 
-	threadRepository := r.GetNewThreadRepository(db)
+	threadRepository := r.GetNewThreadRepository(ro.db)
 	threadService := s.GetNewThreadService(threadRepository)
 	threadController := c.GetNewThreadController(threadService)
 
-	commentRepository := r.GetNewCommentRepository(db)
+	commentRepository := r.GetNewCommentRepository(ro.db)
 	commentService := s.GetNewCommentService(commentRepository, threadRepository)
 	commentController := c.GetNewCommentController(commentService)
 
+	// jwtAuthService := s.NewJwtAuthService(userRepository, r.NewSessionStore(), ro.secret)
+	// jwtController := c.NewJwtController(jwtAuthService)
+
 	router := mux.NewRouter()
 
-	router.NotFoundHandler = NotFoundHandler(router)
-	router.MethodNotAllowedHandler = MethodNotAllowedHandler(router)
+	router.NotFoundHandler = ro.notFoundHandler(router)
+	router.MethodNotAllowedHandler = ro.methodNotAllowedHandler(router)
 
 	router.Use(rm.RecoveryMiddleware, lm.LoggerMiddleware)
 
