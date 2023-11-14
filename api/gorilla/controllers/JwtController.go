@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
 	h "github.com/duartqx/ddcomments/application/http"
+	m "github.com/duartqx/ddcomments/application/middleware"
 	s "github.com/duartqx/ddcomments/application/services"
 	u "github.com/duartqx/ddcomments/domains/entities/user"
 )
@@ -89,7 +91,6 @@ func (jc JwtController) Login(r *http.Request) *h.HttpResponse {
 	}
 }
 
-// public
 func (jc JwtController) Logout(r *http.Request) *h.HttpResponse {
 
 	cookie, _ := r.Cookie(jc.cookieName)
@@ -110,5 +111,43 @@ func (jc JwtController) Logout(r *http.Request) *h.HttpResponse {
 			Name:   jc.cookieName,
 			MaxAge: -1,
 		},
+	}
+}
+
+func (jc JwtController) AuthenticatedMiddleware() m.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			cookie, _ := r.Cookie(jc.cookieName)
+			claimsUser, err := jc.jwtService.ValidateAuth(r.Header.Get("Authorization"), cookie)
+
+			if err != nil {
+				http.SetCookie(w, &http.Cookie{Name: jc.cookieName, MaxAge: -1})
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), "user", claimsUser)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func (jc JwtController) UnauthenticatedMiddleware() m.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			cookie, _ := r.Cookie(jc.cookieName)
+			claimsUser, _ := jc.jwtService.ValidateAuth(r.Header.Get("Authorization"), cookie)
+
+			if claimsUser != nil {
+				http.SetCookie(w, &http.Cookie{Name: jc.cookieName, MaxAge: -1})
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
 	}
 }
