@@ -41,6 +41,10 @@ func NewJwtAuthService(
 	}
 }
 
+func (jas JwtAuthService) claims() *customClaims {
+	return &customClaims{ClaimsUser: ClaimsUser{}, RegisteredClaims: jwt.RegisteredClaims{}}
+}
+
 func (jas JwtAuthService) keyFunc(t *jwt.Token) (interface{}, error) {
 	return *jas.secret, nil
 }
@@ -82,7 +86,9 @@ func (jas JwtAuthService) ValidateAuth(authorization string, cookie *http.Cookie
 		return nil, fmt.Errorf("Missing Token")
 	}
 
-	parsedToken, err := jwt.ParseWithClaims(unparsedToken, &customClaims{}, jas.keyFunc)
+	var claims *customClaims = jas.claims()
+
+	parsedToken, err := jwt.ParseWithClaims(unparsedToken, claims, jas.keyFunc)
 	if err != nil || !parsedToken.Valid {
 		jas.sessionRepository.Delete(unparsedToken)
 
@@ -91,11 +97,6 @@ func (jas JwtAuthService) ValidateAuth(authorization string, cookie *http.Cookie
 
 	if _, err := jas.sessionRepository.Get(unparsedToken); err != nil {
 		return nil, fmt.Errorf("Missing session")
-	}
-
-	claims, ok := parsedToken.Claims.(*customClaims)
-	if !ok {
-		return nil, fmt.Errorf("Could not parse claims")
 	}
 
 	return &claims.ClaimsUser, nil
