@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"math"
+	"reflect"
 	"strings"
 	"time"
 
@@ -78,6 +79,10 @@ func (rl RequestLogger) PanicString(err interface{}) string {
 			rl.GetPath(),
 			coloredError,
 		)
+	}
+
+	if reflect.TypeOf(err).Kind() == reflect.String {
+		return stringer(err.(string))
 	}
 
 	e, ok := err.(error)
