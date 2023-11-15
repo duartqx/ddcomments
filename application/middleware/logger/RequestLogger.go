@@ -3,7 +3,6 @@ package logger
 import (
 	"fmt"
 	"math"
-	"reflect"
 	"strings"
 	"time"
 
@@ -68,28 +67,13 @@ func (rl RequestLogger) String() string {
 }
 
 func (rl RequestLogger) PanicString(err interface{}) string {
-
-	stringer := func(e string) string {
-		coloredError := rl.getColored(e)
-		const tmpl string = "| %s | %s |              | %s %s"
-		return fmt.Sprintf(
-			tmpl,
-			rl.padAndColor(7, rl.GetMethod()),
-			rl.padAndColor(0, rl.GetStatus()),
-			rl.GetPath(),
-			coloredError,
-		)
-	}
-
-	if reflect.TypeOf(err).Kind() == reflect.String {
-		return stringer(err.(string))
-	}
-
-	e, ok := err.(error)
-	if !ok {
-		return stringer("Unknown")
-	}
-	return stringer(e.Error())
+	return fmt.Sprintf(
+		"| %s | %s |              | %s %s",
+		rl.padAndColor(7, rl.GetMethod()),
+		rl.padAndColor(0, rl.GetStatus()),
+		rl.GetPath(),
+		rl.getColored(err),
+	)
 }
 
 func (rl RequestLogger) pad(padding int, value interface{}) string {
