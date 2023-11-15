@@ -1,6 +1,8 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 
@@ -46,23 +48,44 @@ func (ro router) Build() *chi.Mux {
 	commentService := s.GetNewCommentService(commentRepository, threadRepository)
 	commentController := c.GetNewCommentController(commentService)
 
-	// jwtAuthService := s.NewJwtAuthService(userRepository, r.NewSessionStore(), ro.secret)
-	// jwtController := c.NewJwtController(jwtAuthService)
+	jwtAuthService := s.NewJwtAuthService(userRepository, r.NewSessionStore(), ro.secret)
+	jwtController := c.NewJwtController(jwtAuthService)
 
 	router := chi.NewRouter()
 
 	router.Use(rm.RecoveryMiddleware, lm.LoggerMiddleware)
 
+	// Auth Routes
+	router.
+		With(jwtController.UnauthenticatedMiddleware).
+		Method(http.MethodPost, "/login", jwtController)
+
+	router.
+		With(jwtController.AuthenticatedMiddleware).
+		Method(http.MethodDelete, "/logout", jwtController)
+
+	// User Routes
 	userSubrouter := chi.NewRouter()
-	userSubrouter.Handle("/", userController)
+	userSubrouter.
+		With(jwtController.UnauthenticatedMiddleware).
+		Method(http.MethodPost, "/", userController)
 
 	router.Mount("/user", userSubrouter)
 
+	// Thread Routes
 	threadSubrouter := chi.NewRouter()
-	threadSubrouter.Handle("/{thread_id}", threadController)
 
+	threadSubrouter.
+		With(jwtController.AuthenticatedMiddleware).
+		Method(http.MethodPost, "/", threadController)
+
+	threadSubrouter.Method(http.MethodGet, "/{thread_id}", threadController)
+
+	// Comment routes
 	commentSubrouter := chi.NewRouter()
-	commentSubrouter.Handle("/", commentController)
+	commentSubrouter.
+		With(jwtController.AuthenticatedMiddleware).
+		Method(http.MethodPost, "/", commentController)
 
 	threadSubrouter.Mount("/{thread_id}/comment", commentSubrouter)
 
