@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -70,7 +71,7 @@ func (jas JwtAuthService) getUnparsedToken(authorization string, cookie *http.Co
 	return ""
 }
 
-func (jas JwtAuthService) ValidateAuth(authorization string, cookie *http.Cookie) (interface{}, error) {
+func (jas JwtAuthService) ValidateAuth(authorization string, cookie *http.Cookie) (*ClaimsUser, error) {
 
 	unparsedToken := jas.getUnparsedToken(authorization, cookie)
 	if unparsedToken == "" {
@@ -94,7 +95,26 @@ func (jas JwtAuthService) ValidateAuth(authorization string, cookie *http.Cookie
 		return nil, fmt.Errorf("Could not parse claims")
 	}
 
-	return claims["user"], nil
+	claimsMapUser, ok := claims["user"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("User key not found")
+	}
+
+	claimsUser := ClaimsUser{}
+	for key, value := range claimsMapUser {
+
+		field := reflect.ValueOf(&claimsUser).Elem().FieldByName(key)
+
+		if key == "Id" {
+			id, _ := uuid.Parse(value.(string))
+			field.Set(reflect.ValueOf(id))
+		} else {
+			field.Set(reflect.ValueOf(value))
+		}
+
+	}
+
+	return &claimsUser, nil
 }
 
 func (jas JwtAuthService) Login(user m.User) (token string, expiresAt time.Time, err error) {
