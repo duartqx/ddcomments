@@ -32,7 +32,7 @@ func (ur UserRepository) FindByID(id uuid.UUID) (m.User, error) {
 
 	user := ur.GetUserModel()
 
-	if err := ur.db.QueryRow("SELECT * FROM users WHERE id = $1 LIMIT 1", id).Scan(&user); err != nil {
+	if err := ur.db.Get(user, "SELECT * FROM users WHERE id = $1", id); err != nil {
 		return nil, err
 	}
 
@@ -43,7 +43,7 @@ func (ur UserRepository) FindByEmail(email string) (m.User, error) {
 
 	user := ur.GetUserModel()
 
-	if err := ur.db.QueryRow("SELECT * FROM users WHERE email = $1 LIMIT 1", email).Scan(&user); err != nil {
+	if err := ur.db.Get(user, "SELECT * FROM users WHERE email = $1", email); err != nil {
 		return nil, err
 	}
 
