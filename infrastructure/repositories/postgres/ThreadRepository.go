@@ -127,3 +127,20 @@ func (tr ThreadRepository) ExistsById(id uuid.UUID) (exists *bool) {
 
 	return exists
 }
+
+func (tr ThreadRepository) Create(thread m.Thread) error {
+	var id uuid.UUID
+
+	if err := tr.db.QueryRow(`
+			INSERT INTO threads (slug, creator_id) VALUES ($1, $2) RETURNING id
+		`,
+		thread.GetSlug(),
+		thread.GetCreatorId(),
+	).Scan(&id); err != nil {
+		return err
+	}
+
+	thread.SetId(id)
+
+	return nil
+}
