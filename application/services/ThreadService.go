@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 
 	m "github.com/duartqx/ddcomments/domains/models"
@@ -46,4 +48,11 @@ func (cs ThreadService) GetAllCommentsByThreadId(threadId uuid.UUID) (*[]m.Comme
 
 func (cs ThreadService) ExistsById(threadId uuid.UUID) *bool {
 	return cs.threadRepository.ExistsById(threadId)
+}
+
+func (cs ThreadService) Create(thread m.Thread) error {
+	if thread.GetSlug() == "" || thread.GetCreatorId() == uuid.Nil {
+		return fmt.Errorf("Invalid Thread")
+	}
+	return cs.threadRepository.Create(thread)
 }
