@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
@@ -16,9 +15,14 @@ import (
 )
 
 type ClaimsUser struct {
-	Id    uuid.UUID
-	Email string
-	Name  string
+	Id    uuid.UUID `json:"id"`
+	Email string    `json:"email"`
+	Name  string    `json:"name"`
+}
+
+type customClaims struct {
+	ClaimsUser
+	jwt.RegisteredClaims
 }
 
 type JwtAuthService struct {
@@ -43,9 +47,9 @@ func (jas JwtAuthService) keyFunc(t *jwt.Token) (interface{}, error) {
 
 func (jas JwtAuthService) generateToken(user *ClaimsUser, expiresAt time.Time) (string, error) {
 
-	claims := jwt.MapClaims{
-		"user": *user,
-		"exp":  expiresAt.Unix(),
+	claims := &customClaims{
+		ClaimsUser:       *user,
+		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(expiresAt)},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -78,9 +82,8 @@ func (jas JwtAuthService) ValidateAuth(authorization string, cookie *http.Cookie
 		return nil, fmt.Errorf("Missing Token")
 	}
 
-	parsedToken, err := jwt.Parse(unparsedToken, jas.keyFunc)
+	parsedToken, err := jwt.ParseWithClaims(unparsedToken, &customClaims{}, jas.keyFunc)
 	if err != nil || !parsedToken.Valid {
-
 		jas.sessionRepository.Delete(unparsedToken)
 
 		return nil, fmt.Errorf("Expired session")
@@ -90,31 +93,12 @@ func (jas JwtAuthService) ValidateAuth(authorization string, cookie *http.Cookie
 		return nil, fmt.Errorf("Missing session")
 	}
 
-	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	claims, ok := parsedToken.Claims.(*customClaims)
 	if !ok {
 		return nil, fmt.Errorf("Could not parse claims")
 	}
 
-	claimsMapUser, ok := claims["user"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("User key not found")
-	}
-
-	claimsUser := ClaimsUser{}
-	for key, value := range claimsMapUser {
-
-		field := reflect.ValueOf(&claimsUser).Elem().FieldByName(key)
-
-		if key == "Id" {
-			id, _ := uuid.Parse(value.(string))
-			field.Set(reflect.ValueOf(id))
-		} else {
-			field.Set(reflect.ValueOf(value))
-		}
-
-	}
-
-	return &claimsUser, nil
+	return &claims.ClaimsUser, nil
 }
 
 func (jas JwtAuthService) Login(user m.User) (token string, expiresAt time.Time, err error) {
@@ -156,7 +140,7 @@ func (jas JwtAuthService) Login(user m.User) (token string, expiresAt time.Time,
 	return token, expiresAt, nil
 }
 
-func (jas *JwtAuthService) Logout(authorization string, cookie *http.Cookie) error {
+func (jas JwtAuthService) Logout(authorization string, cookie *http.Cookie) error {
 	unparsedToken := jas.getUnparsedToken(authorization, cookie)
 	if unparsedToken == "" {
 		return fmt.Errorf("Missing Token")

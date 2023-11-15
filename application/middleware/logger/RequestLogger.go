@@ -71,7 +71,7 @@ func (rl RequestLogger) PanicString(err interface{}) string {
 
 	stringer := func(e string) string {
 		coloredError := rl.getColored(e)
-		const tmpl string = "| %s | %s |             | %s %s"
+		const tmpl string = "| %s | %s |              | %s %s"
 		return fmt.Sprintf(
 			tmpl,
 			rl.padAndColor(7, rl.GetMethod()),
