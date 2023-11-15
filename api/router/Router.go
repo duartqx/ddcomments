@@ -13,31 +13,26 @@ import (
 	s "github.com/duartqx/ddcomments/application/services"
 )
 
-type Router struct {
+type router struct {
 	db     *sqlx.DB
 	secret *[]byte
 }
 
-func NewRouterBuilder() *Router {
-	return &Router{}
+func NewRouterBuilder() *router {
+	return &router{}
 }
 
-func (ro *Router) SetDb(db *sqlx.DB) *Router {
+func (ro *router) SetDb(db *sqlx.DB) *router {
 	ro.db = db
 	return ro
 }
 
-func (ro *Router) SetSecret(secret []byte) *Router {
+func (ro *router) SetSecret(secret []byte) *router {
 	ro.secret = &secret
 	return ro
 }
 
-func threadSubrouter(threadController *c.ThreadController) *chi.Mux {
-	r := chi.NewRouter()
-	return r
-}
-
-func (ro Router) Build() *chi.Mux {
+func (ro router) Build() *chi.Mux {
 
 	userRepository := r.GetNewUserRepository(ro.db)
 	userService := s.GetNewUserService(userRepository)
