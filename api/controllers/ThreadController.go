@@ -11,6 +11,8 @@ import (
 
 	h "github.com/duartqx/ddcomments/application/http"
 	s "github.com/duartqx/ddcomments/application/services"
+	t "github.com/duartqx/ddcomments/domains/entities/thread"
+	u "github.com/duartqx/ddcomments/domains/entities/user"
 )
 
 type ThreadController struct {
@@ -30,6 +32,8 @@ func (tc ThreadController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		response = tc.get(r)
+	case http.MethodPost:
+		response = tc.post(r)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -79,4 +83,26 @@ func (tc ThreadController) get(r *http.Request) *h.HttpResponse {
 	}
 
 	return &h.HttpResponse{Status: http.StatusOK, Body: results}
+}
+
+func (tc ThreadController) post(r *http.Request) *h.HttpResponse {
+
+	claimsUser := r.Context().Value("user").(*s.ClaimsUser)
+
+	var thread *t.ThreadEntity
+
+	if err := json.NewDecoder(r.Body).Decode(&thread); err != nil {
+		return &h.HttpResponse{Status: http.StatusBadRequest}
+	}
+
+	thread.SetCreator(
+		&u.UserDTO{Id: claimsUser.Id, Email: claimsUser.Email, Name: claimsUser.Name},
+	)
+
+	if err := tc.threadService.Create(thread); err != nil {
+		return &h.HttpResponse{Status: http.StatusBadRequest}
+	}
+
+	return &h.HttpResponse{Status: http.StatusCreated, Body: thread}
+
 }
