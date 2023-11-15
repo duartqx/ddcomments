@@ -46,7 +46,6 @@ func (cc CommentController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO inject with middleware
 func (cc CommentController) getThreadId(r *http.Request) (uuid.UUID, error) {
 	threadId, err := utils.GetThreadIdFromVars(r)
 	if err != nil {
@@ -59,7 +58,6 @@ func (cc CommentController) getThreadId(r *http.Request) (uuid.UUID, error) {
 	return threadId, nil
 }
 
-// TODO inject with middleware
 func (cc CommentController) getCommentId(r *http.Request) (uuid.UUID, error) {
 	commentId, err := utils.GetCommentIdFromVars(r)
 	if err != nil {
@@ -73,6 +71,11 @@ func (cc CommentController) getCommentId(r *http.Request) (uuid.UUID, error) {
 }
 
 func (cc CommentController) post(r *http.Request) *h.HttpResponse {
+
+	user, ok := r.Context().Value("user").(*s.ClaimsUser)
+	if !ok {
+		return &h.HttpResponse{Status: http.StatusUnauthorized}
+	}
 
 	var comment m.Comment = &c.CommentDTO{}
 
@@ -101,9 +104,7 @@ func (cc CommentController) post(r *http.Request) *h.HttpResponse {
 		comment.SetParentId(parentId)
 	}
 
-	// TODO inject with middleware
-	cid, _ := uuid.Parse("81ad0ae3-84b5-47f9-8770-8e842ae60ce9")
-	comment.SetCreatorId(cid)
+	comment.SetCreatorId(user.Id)
 
 	err = cc.commentService.Create(comment)
 	if err != nil {
