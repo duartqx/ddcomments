@@ -1,1 +1,19 @@
-GET http://localhost:8000/comment/c67bda41-eed2-4ead-91ec-7fb6fb05d611
+@Jwt = {{ LoginAPI.response.body.token }}
+
+###
+# Login
+# @name LoginAPI
+POST http://localhost:8000/login
+
+{
+    "email": "d@d.com",
+    "password": "d"
+}
+
+###
+POST  http://localhost:8000/thread
+Authorization: Bearer {{Jwt}}
+
+{
+    "slug": "creating-thread-with-logged-user"
+}
